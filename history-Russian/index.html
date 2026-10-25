@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Викторина: История Руси (IX–XV века)</title>
+    <style>
+        :root {
+            --bg-color: #f4f1ea;
+            --card-bg: #ffffff;
+            --text-color: #2c2520;
+            --primary: #8b263e;
+            --primary-hover: #a33851;
+            --success: #2e7d32;
+            --error: #c62828;
+            --border: #d7ccc8;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .quiz-container {
+            background: var(--card-bg);
+            max-width: 650px;
+            width: 100%;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border);
+        }
+
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            font-size: 24px;
+            margin-top: 0;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+
+        .progress {
+            text-align: right;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .topic {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary);
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .question {
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 1.5;
+            margin-bottom: 25px;
+            min-height: 60px;
+        }
+
+        .buttons-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: transparent;
+            transition: all 0.2s ease;
+        }
+
+        button.btn-true {
+            color: var(--success);
+            border-color: var(--success);
+        }
+
+        button.btn-true:hover:not(:disabled) {
+            background: #e8f5e9;
+        }
+
+        button.btn-false {
+            color: var(--error);
+            border-color: var(--error);
+        }
+
+        button.btn-false:hover:not(:disabled) {
+            background: #ffebee;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        button.selected-correct {
+            background-color: #c8e6c9 !important;
+            border-color: var(--success) !important;
+            color: #1b5e20 !important;
+        }
+
+        button.selected-incorrect {
+            background-color: #ffcdd2 !important;
+            border-color: var(--error) !important;
+            color: #b71c1c !important;
+        }
+
+        .hint-btn {
+            background: none;
+            border: none;
+            color: #757575;
+            text-decoration: underline;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 0;
+            margin-bottom: 15px;
+            display: inline-block;
+            font-weight: normal;
+        }
+
+        .hint-text {
+            background: #efebe9;
+            padding: 10px 15px;
+            border-left: 4px solid #8d6e63;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .feedback {
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 15px;
+            line-height: 1.4;
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .feedback.correct {
+            background-color: #e8f5e9;
+            color: #1b5e20;
+            border: 1px solid #a5d6a7;
+        }
+
+        .feedback.incorrect {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+        }
+
+        .next-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            display: none;
+            cursor: pointer;
+        }
+
+        .next-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .result-screen {
+            text-align: center;
+            display: none;
+        }
+
+        .score {
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 20px 0;
+        }
+
+        .restart-btn {
+            background: var(--text-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <!-- Игровой экран -->
+    <div id="quiz-screen">
+        <h1>История Руси (IX–XV вв.)</h1>
+        <div class="progress">Вопрос <span id="current-question-num">1</span> из <span id="total-questions-num">10</span></div>
+        
+        <div class="topic" id="question-topic">Тема вопроса</div>
+        <div class="question" id="question-text">Вопросы загружаются...</div>
+        
+        <button class="hint-btn" id="hint-button">Показать подсказку</button>
+        <div class="hint-text" id="hint-text">Подсказка...</div>
+
+        <div class="buttons-container">
+            <button class="btn-true" id="btn-true">Правда</button>
+            <button class="btn-false" id="btn-false">Ложь</button>
+        </div>
+
+        <div class="feedback" id="feedback-box">Пояснение ответа...</div>
+        
+        <button class="next-btn" id="next-button">Дальше</button>
+    </div>
+
+    <!-- Экран результатов -->
+    <div class="result-screen" id="result-screen">
+        <h1>Викторина завершена!</h1>
+        <p>Ваш результат:</p>
+        <div class="score"><span id="final-score">0</span> / <span id="final-total">10</span></div>
+        <p id="result-comment">Отличный результат!</p>
+        <button class="restart-btn" id="restart-button">Пройти еще раз</button>
+    </div>
+</div>
+
+<script>
+    var quizData = [
+        {
+            topic: "Призвание варягов (IX век)",
+            question: "По «Повести временных лет», варяжский князь Рюрик был призван на правление в Новгород в 862 году.",
+            answer: true,
+            hint: "Вспоминайте начало «Повести временных лет» и дату, с которой традиционно отсчитывают зарождение русской государственности.",
+            reasonTrue: "Верно! Согласно летописному преданию, славянские и финно-угорские племена призвали варягов во главе с Рюриком в 862 году для прекращения междоусобиц.",
+            reasonFalse: "Неверно. Дата 862 год и сам факт призвания Рюрика в Новгород закреплены в «Повести временных лет» именно как историческая правда."
+        },
+        {
+            topic: "Крещение Руси (X век)",
+            question: "Князь Владимир Святославич крестил Русь в 988 году, приняв христианство по католическому обряду.",
+            answer: false,
+            hint: "Обратите внимание на ветвь христианства, связанную с Константинополем и Византийской империей.",
+            reasonTrue: "Неверно. Русь приняла христианство по восточному (православному) обряду из Византии, а не по католическому.",
+            reasonFalse: "Правильно! Русь крестилась в 988 году по восточному (православному) образцу из Константинополя, что определило её культурный и религиозный вектор."
+        },
+        {
+            topic: "Законодательство Древней Руси (XI век)",
+            question: "Первый письменный свод законов Древней Руси назывался «Русская Правда» и был начат при Ярославе Мудром.",
+            answer: true,
+            hint: "Подумайте о сыне Владимира Святославича, при котором Киевская Русь достигла пика своего развития.",
+            reasonTrue: "Верно! Ярослав Мудрый и его сыновья заложили основы первого письменного законодательного свода Руси.",
+            reasonFalse: "Неверно. Это утверждение абсолютно правдиво: «Русская Правда» стала основой древнерусского права."
+        },
+        {
+            topic: "Борьба с экспансией (XIII век)",
+            question: "Александр Невский одержал победу в Невской битве в 1240 году над немецкими рыцарями-крестоносцами.",
+            answer: false,
+            hint: "Различайте противников Александра Невского на реке Неве (1240) и на Чудском озере (1242).",
+            reasonTrue: "Неверно. В Невской битве 1240 года Александр разгромил шведов, а с немецкими рыцарями Ливонского ордена он сражался позже — в Ледовом побоище 1242 года.",
+            reasonFalse: "Правильно! В Невской битве противниками были шведы, а не немецкие рыцари."
+        },
+        {
+            topic: "Куликовская битва (XIV век)",
+            question: "Куликовская битва состоялась в 1380 году, и в ней русским войсками командовал московский князь Дмитрий Иванович.",
+            answer: true,
+            hint: "Вспомните победу на Дону и князя, ставшего ее символом.",
+            reasonTrue: "Верно! Дмитрий Иванович (получивший за эту победу прозвание Донской) возглавил объединенное русское войско против Мамая.",
+            reasonFalse: "Неверно. Это факт: битва на Куликовом поле произошла в 1380 году под предводительством князя Дмитрия Московского."
+        },
+        {
+            topic: "Возвышение Москвы (XIV век)",
+            question: "Иван I Калита добился для московских князей права самостоятельно собирать дань со всех русских земель для Золотой Орды.",
+            answer: true,
+            hint: "Подумайте о прозвище московского князя «Калита» (денежная сумка) и его отношениях с ханами Орды.",
+            reasonTrue: "Правильно! Именно политика Ивана Калиты по укреплению ярлыка на великое княжение и права сбора дани заложила фундамент возвышения Москвы.",
+            reasonFalse: "Неверно. Утверждение правдиво: получив право сбора ордынского выхода, Иван Калита обеспечил Москве финансовое превосходство."
+        },
+        {
+            topic: "Объединение земель вокруг Москвы (XV век)",
+            question: "В 1478 году Иван III присоединил к Московскому княжеству Великое княжество Литовское.",
+            answer: false,
+            hint: "Вспомните вечевой колокол свободолюбивого северного города-республики, который был увезен в Москву в 1478 году.",
+            reasonTrue: "Неверно. В 1478 году Иван III подчинил себе Новгородскую республику (Новгород Великий), а не Литовское княжество.",
+            reasonFalse: "Верно! В 1478 году к Москве была присоединена Новгородская республика, а не Литовское государство."
+        },
+        {
+            topic: "Конец ордынского ига (XV век)",
+            question: "Великое стояние на реке Угре в 1480 году закончилось грандиозным кровопролитным сражением и разгромом объединенной русской армией хана Ахмата.",
+            answer: false,
+            hint: "Подумайте о характере самого термина «стояние» — было ли там масштабное столкновение?",
+            reasonTrue: "Неверно! Противостояние на Угре обошлось без масштабного генерального сражения: войска стояли друг напротив друга, после чего ордынцы отступили.",
+            reasonFalse: "Правильно! Кровопролитного генерального боя на Угре не было — ордынское войско отошло без боя, что ознаменовало окончательное падение ига."
+        },
+        {
+            topic: "Культура и политика (XII век)",
+            question: "Владимир Мономах написал «Поучение детям», в котором призывал к единству русских земель и прекращению братоубийственных усобиц.",
+            answer: true,
+            hint: "Вспомните автора Любечского съезда князей (1097 г.) и выдающегося киевского князя начала XII века.",
+            reasonTrue: "Верно! «Поучение Владимира Мономаха» — выдающийся памятник древнерусской литературы, призывающий князей жить в согласии.",
+            reasonFalse: "Неверно. Это чистая правда: Владимир Мономах оставил потомкам мудрое «Поучение», направленное против усобиц."
+        },
+        {
+            topic: "Монгольское нашествие (XIII век)",
+            question: "Батый разорил Киев и установил ордынское владычество над Южной и Северо-Восточной Русью в 1340 году.",
+            answer: false,
+            hint: "Обратите внимание на дату нашествия Батыя на Русь: это 40-е годы какого века?",
+            reasonTrue: "Неверно. Разгром Киева войсками хана Батыя произошел весной 1240 года, а не в XIV веке (1340 г.).",
+            reasonFalse: "Верно! Киев был осажден и взят монголами в 1240 году, а не столетием позже."
+        }
+    ];
+
+    var currentQuestionIndex = 0;
+    var score = 0;
+
+    function loadQuestion() {
+        var currentQuestion = quizData[currentQuestionIndex];
+        document.getElementById('current-question-num').textContent = currentQuestionIndex + 1;
+        document.getElementById('total-questions-num').textContent = quizData.length;
+        document.getElementById('question-topic').textContent = currentQuestion.topic;
+        document.getElementById('question-text').textContent = currentQuestion.question;
+        document.getElementById('hint-text').textContent = currentQuestion.hint;
+        document.getElementById('hint-text').style.display = 'none';
+        document.getElementById('hint-button').style.display = 'inline-block';
+        document.getElementById('hint-button').textContent = "Показать подсказку";
+        document.getElementById('feedback-box').style.display = 'none';
+        document.getElementById('next-button').style.display = 'none';
+        document.getElementById('btn-true').disabled = false;
+        document.getElementById('btn-false').disabled = false;
+        document.getElementById('btn-true').className = 'btn-true';
+        document.getElementById('btn-false').className = 'btn-false';
+    }
+
+    function toggleHint() {
+        var hintTextEl = document.getElementById('hint-text');
+        var hintButton = document.getElementById('hint-button');
+        if (hintTextEl.style.display === 'none') {
+            hintTextEl.style.display = 'block';
+            hintButton.textContent = "Скрыть подсказку";
+        } else {
+            hintTextEl.style.display = 'none';
+            hintButton.textContent = "Показать подсказку";
+        }
+    }
+
+    function checkAnswer(userAnswer) {
+        var currentQuestion = quizData[currentQuestionIndex];
+        var isCorrect = (userAnswer === currentQuestion.answer);
+        var btnTrue = document.getElementById('btn-true');
+        var btnFalse = document.getElementById('btn-false');
+        var feedbackBox = document.getElementById('feedback-box');
+        
+        btnTrue.disabled = true;
+        btnFalse.disabled = true;
+        document.getElementById('hint-button').style.display = 'none';
+        document.getElementById('hint-text').style.display = 'none';
+        
+        if (userAnswer === true) {
+            btnTrue.className = isCorrect ? 'btn-true selected-correct' : 'btn-true selected-incorrect';
+        } else {
+            btnFalse.className = isCorrect ? 'btn-false selected-correct' : 'btn-false selected-incorrect';
+        }
+        
+        if (isCorrect) {
+            score++;
+            feedbackBox.textContent = currentQuestion.reasonTrue;
+            feedbackBox.className = "feedback correct";
+        } else {
+            feedbackBox.textContent = currentQuestion.reasonFalse;
+            feedbackBox.className = "feedback incorrect";
+        }
+        
+        feedbackBox.style.display = 'block';
+        document.getElementById('next-button').style.display = 'block';
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < quizData.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        document.getElementById('quiz-screen').style.display = 'none';
+        document.getElementById('result-screen').style.display = 'block';
+        document.getElementById('final-score').textContent = score;
+        document.getElementById('final-total').textContent = quizData.length;
+        var commentEl = document.getElementById('result-comment');
+        
+        if (score === quizData.length) {
+            commentEl.textContent = "Идеально! Вы великолепно знаете историю Древней Руси и Московского государства!";
+        } else if (score >= 7) {
+            commentEl.textContent = "Хороший результат! Большинство ключевых событий вам отлично знакомы.";
+        } else if (score >= 5) {
+            commentEl.textContent = "Неплохо, но есть над чем поработать. Попробуйте пройти тест еще раз!";
+        } else {
+            commentEl.textContent = "История Руси таит в себе еще много открытий для вас. Стоит повторить материал.";
+        }
+    }
+
+    function restartQuiz() {
+        currentQuestionIndex = 0;
+        score = 0;
+        document.getElementById('result-screen').style.display = 'none';
+        document.getElementById('quiz-screen').style.display = 'block';
+        loadQuestion();
+    }
+
+    // Инициализация привязок и старт после полной загрузки DOM
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('hint-button').addEventListener('click', toggleHint);
+        document.getElementById('btn-true').addEventListener('click', function() { checkAnswer(true); });
+        document.getElementById('btn-false').addEventListener('click', function() { checkAnswer(false); });
+        document.getElementById('next-button').addEventListener('click', nextQuestion);
+        document.getElementById('restart-button').addEventListener('click', restartQuiz);
+        
+        // Запуск первого вопроса
+        loadQuestion();
+    });
+</script>
+
+</body>
+</html>
